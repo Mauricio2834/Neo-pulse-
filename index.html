@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NEO PULSE — Smartwatch Conceptual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@100;200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#000000;--card:#0b1118;--border:rgba(255,255,255,0.07);
+  --green:#00ff88;--cyan:#00e5ff;--amber:#ffb300;--red:#ff4455;--purple:#b06aff;
+  --white:#eef2ff;--muted:rgba(238,242,255,0.42);--muted2:rgba(238,242,255,0.22);
+  --font:'Exo 2',sans-serif;--mono:'Share Tech Mono',monospace;--title:'Rajdhani',sans-serif;
+  --ws:320px;
+}
+html,body{background:#0c0e10;min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:var(--font);overflow:hidden}
+
+/* ── OUTER WRAPPER ── */
+.outer-ui{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:radial-gradient(ellipse at center,#0a0e14 0%,#050608 100%)}
+.brand-header{text-align:center;animation:fadeUp 0.8s ease both}
+.brand-logo{font-family:var(--title);font-size:26px;font-weight:700;color:var(--white);letter-spacing:5px}
+.brand-logo span{color:var(--green);text-shadow:0 0 20px rgba(0,255,136,0.5)}
+.brand-tag{font-size:8.5px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;font-family:var(--mono);margin-top:3px}
+.nav-labels{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:360px}
+.nl-btn{padding:5px 9px;border-radius:7px;border:0.5px solid var(--border);background:rgba(255,255,255,0.04);color:var(--muted);font-size:8px;font-family:var(--mono);cursor:pointer;transition:all 0.2s}
+.nl-btn.active{background:rgba(0,255,136,0.1);color:var(--green);border-color:rgba(0,255,136,0.3)}
+
+/* ── WATCH SHELL ── */
+.watch-shell{position:relative;width:calc(var(--ws) + 32px);height:calc(var(--ws) + 32px);flex-shrink:0}
+.bezel-ticks{position:absolute;inset:4px;border-radius:50%;pointer-events:none;z-index:50}
+.watch-bezel{
+  position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(ellipse at 30% 20%,#1c2232 0%,#0a0c12 50%,#040508 100%);
+  box-shadow:0 0 0 1.5px rgba(255,255,255,0.05),0 0 50px rgba(0,255,136,0.1),0 0 100px rgba(0,229,255,0.05),inset 0 0 40px rgba(0,0,0,0.7),0 24px 70px rgba(0,0,0,0.95);
+}
+.watch-bezel::before{content:'';position:absolute;inset:6px;border-radius:50%;border:1px solid rgba(255,255,255,0.03);pointer-events:none}
+.watch-bezel::after{content:'';position:absolute;inset:14px;border-radius:50%;border:0.5px solid rgba(255,255,255,0.04);pointer-events:none}
+.watch-screen{position:absolute;inset:16px;border-radius:50%;background:#000;overflow:hidden;clip-path:circle(50%)}
+
+/* ── SCREENS ── */
+.screen{position:absolute;inset:0;border-radius:50%;overflow:hidden;opacity:0;pointer-events:none;transition:opacity 0.35s cubic-bezier(0.4,0,0.2,1),transform 0.35s cubic-bezier(0.4,0,0.2,1);transform:scale(0.94) translateX(20px)}
+.screen.active{opacity:1;pointer-events:all;transform:scale(1) translateX(0)}
+.screen.slide-out-left{transform:scale(0.94) translateX(-20px)}
+
+/* Scrollable inner area — clip stays circular */
+.scr-inner{
+  position:absolute;inset:0;border-radius:50%;
+  overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.scr-inner::-webkit-scrollbar{display:none}
+.scroll-hint{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);width:20px;height:3px;background:rgba(255,255,255,0.15);border-radius:2px;animation:scrollHintPulse 2.5s infinite;pointer-events:none;z-index:50}
+@keyframes scrollHintPulse{0%,100%{opacity:0.3;transform:translateX(-50%) scaleX(1)}50%{opacity:0.9;transform:translateX(-50%) scaleX(1.5)}}
+
+.scr-pad{padding:32px 22px 52px;display:flex;flex-direction:column;align-items:center;min-height:100%}
+
+/* ── NAV DOTS ── */
+.nav-dots{position:absolute;bottom:13px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:200;pointer-events:none}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.18);transition:all 0.3s}
+.nav-dot.active{background:var(--green);width:14px;border-radius:3px;box-shadow:0 0 6px var(--green)}
+
+/* ── QUICK PANEL ── */
+.quick-panel{position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.93);backdrop-filter:blur(20px);z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 22px;opacity:0;pointer-events:none;transition:opacity 0.28s;clip-path:circle(50%)}
+.quick-panel.open{opacity:1;pointer-events:all}
+.qp-title{font-size:9px;color:var(--muted);letter-spacing:2.5px;text-transform:uppercase;font-family:var(--mono);margin-bottom:14px}
+.qp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.qp-btn{background:rgba(255,255,255,0.06);border:0.5px solid var(--border);border-radius:12px;padding:12px 4px;text-align:center;cursor:pointer;transition:all 0.2s;active:scale(0.95)}
+.qp-btn:active{transform:scale(0.93);background:rgba(255,255,255,0.1)}
+.qp-icon{font-size:18px;margin-bottom:3px}
+.qp-lbl{font-size:7.5px;color:var(--muted);font-family:var(--mono)}
+.qp-close{margin-top:14px;font-size:9px;color:var(--muted);letter-spacing:1px;font-family:var(--mono);cursor:pointer;padding:6px 14px;border-radius:8px;background:rgba(255,255,255,0.05);border:0.5px solid var(--border)}
+
+/* ── COMMON COMPONENTS ── */
+.screen-title{font-family:var(--title);font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;color:var(--green)}
+.stitle-dot{width:5px;height:5px;border-radius:50%;background:currentColor;animation:pulseGlow 2s infinite;flex-shrink:0}
+
+/* Cards */
+.card{background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:12px;width:100%;margin-bottom:7px;overflow:hidden}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;cursor:pointer}
+.card-title{font-size:10px;font-weight:600;color:var(--white)}
+.card-sub{font-size:8px;color:var(--muted);margin-top:1px}
+.card-body{padding:0 12px 12px;display:none}
+.card-body.open{display:block}
+.expand-arrow{font-size:10px;color:var(--muted);transition:transform 0.25s;display:inline-block}
+.expand-arrow.open{transform:rotate(180deg)}
+
+/* Stat grid 2-col */
+.sg2{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;margin-bottom:7px}
+/* Stat grid 3-col */
+.sg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;width:100%;margin-bottom:7px}
+
+.stat-tile{background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:10px;padding:9px 7px;text-align:center;position:relative;overflow:hidden;cursor:pointer;transition:background 0.2s}
+.stat-tile:active{background:rgba(255,255,255,0.08)}
+.stat-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:1.5px;background:var(--tc,var(--cyan));opacity:0.7}
+.st-val{font-size:15px;font-weight:700;color:var(--white);font-family:var(--title);line-height:1.1}
+.st-unit{font-size:7px;color:var(--muted)}
+.st-lbl{font-size:7.5px;color:var(--muted);margin-top:2px}
+
+/* Progress bar */
+.pbar{height:2.5px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:5px;overflow:hidden}
+.pfill{height:100%;border-radius:2px;transition:width 1.4s ease}
+
+/* Chip badge */
+.chip{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:6px;font-size:7.5px;font-family:var(--mono);font-weight:600}
+.chip-green{background:rgba(0,255,136,0.15);color:var(--green);border:0.5px solid rgba(0,255,136,0.25)}
+.chip-cyan{background:rgba(0,229,255,0.15);color:var(--cyan);border:0.5px solid rgba(0,229,255,0.2)}
+.chip-amber{background:rgba(255,179,0,0.15);color:var(--amber);border:0.5px solid rgba(255,179,0,0.2)}
+.chip-red{background:rgba(255,68,85,0.15);color:var(--red);border:0.5px solid rgba(255,68,85,0.2)}
+.chip-purple{background:rgba(176,106,255,0.15);color:var(--purple);border:0.5px solid rgba(176,106,255,0.2)}
+
+/* ══════════════════════
+   SCREEN 1 — HOME
+══════════════════════ */
+#screen-home{background:radial-gradient(circle at 50% 35%,#041206 0%,#010304 65%,#000 100%)}
+.home-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;padding:26px 20px;position:relative;z-index:1}
+.home-top{display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:4px}
+.battery-pill{display:flex;align-items:center;gap:3px;font-family:var(--mono);font-size:9px;color:var(--green);background:rgba(0,255,136,0.1);padding:3px 7px;border-radius:8px}
+.signal-dots{display:flex;gap:2px;align-items:flex-end}
+.signal-dot{width:3px;background:var(--green);border-radius:1px}
+.sd1{height:4px}.sd2{height:6px}.sd3{height:8px}.sd4{height:10px;opacity:0.35}
+.time-wrap{text-align:center;margin:2px 0}
+.time-big{font-family:var(--title);font-size:56px;font-weight:300;color:var(--white);letter-spacing:-1px;line-height:1;text-shadow:0 0 40px rgba(0,255,136,0.18)}
+.date-line{font-size:9.5px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-family:var(--mono);margin-top:2px}
+.greeting-line{font-size:11px;color:var(--green);font-weight:400;margin-top:1px}
+.score-ring-wrap{position:relative;width:76px;height:76px;margin:6px auto}
+.score-svg-small{width:76px;height:76px;transform:rotate(-90deg)}
+.score-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.score-n{font-size:21px;font-weight:700;color:var(--white);font-family:var(--title)}
+.score-l{font-size:6.5px;color:var(--cyan);letter-spacing:1.5px;text-transform:uppercase}
+.score-s{font-size:8px;color:var(--green)}
+.quick-stats{display:flex;gap:6px;width:100%;margin-top:7px}
+.qs{flex:1;background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:9px;padding:7px 5px;text-align:center;position:relative;overflow:hidden;cursor:pointer;transition:background 0.2s}
+.qs:active{background:rgba(255,255,255,0.08)}
+.qs::before{content:'';position:absolute;top:0;left:0;right:0;height:1.5px;background:var(--qs-color,var(--cyan));opacity:0.7}
+.qs-val{font-size:15px;font-weight:700;color:var(--white);font-family:var(--title)}
+.qs-unit{font-size:7.5px;color:var(--muted)}
+.qs-lbl{font-size:7.5px;color:var(--muted);margin-top:1px}
+.mode-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(0,255,136,0.1);border:0.5px solid rgba(0,255,136,0.25);border-radius:8px;padding:3px 9px;font-size:9px;color:var(--green);font-family:var(--mono);margin-top:6px;letter-spacing:1px;cursor:pointer;transition:background 0.2s}
+.mode-chip:active{background:rgba(0,255,136,0.18)}
+.ai-strip{width:100%;margin-top:6px;background:rgba(0,229,255,0.05);border:0.5px solid rgba(0,229,255,0.12);border-radius:9px;padding:7px 10px;display:flex;align-items:flex-start;gap:6px;cursor:pointer}
+.ai-dot{width:5px;height:5px;background:var(--cyan);border-radius:50%;flex-shrink:0;margin-top:3px;animation:pulseGlow 2s infinite}
+.ai-msg{font-size:9px;color:rgba(238,242,255,0.58);line-height:1.45;transition:opacity 0.28s}
+
+/* ══════════════════════
+   SCREEN 2 — SALUD 360
+══════════════════════ */
+#screen-health{background:radial-gradient(circle at 50% 20%,#041008 0%,#010304 55%,#000 100%)}
+.ecg-block{width:100%;background:rgba(0,255,136,0.04);border:0.5px solid rgba(0,255,136,0.14);border-radius:12px;padding:11px;margin-bottom:7px}
+.ecg-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.ecg-title{font-size:8px;color:var(--green);letter-spacing:2px;text-transform:uppercase;font-family:var(--mono)}
+.bpm-live{font-family:var(--mono);font-size:20px;color:var(--green);font-weight:bold}
+canvas.ecg-canvas{width:100%;height:48px;display:block}
+.sleep-card{width:100%;background:rgba(176,106,255,0.06);border:0.5px solid rgba(176,106,255,0.16);border-radius:12px;padding:11px;margin-bottom:7px;cursor:pointer}
+.sleep-main{font-size:22px;font-weight:600;color:var(--purple);font-family:var(--title)}
+.sleep-sub{font-size:8px;color:var(--muted);margin-top:1px}
+.sleep-stages{display:flex;gap:3px;margin-top:7px}
+.stage{flex:1;text-align:center}
+.stage-b{height:18px;border-radius:3px}
+.stage-l{font-size:7px;color:var(--muted);margin-top:2px}
+.salud-score-card{width:100%;background:linear-gradient(135deg,rgba(0,255,136,0.09),rgba(0,229,255,0.04));border:0.5px solid rgba(0,255,136,0.22);border-radius:12px;padding:13px;text-align:center}
+.ss-label{font-size:7.5px;color:var(--green);letter-spacing:2.5px;text-transform:uppercase;font-family:var(--mono);margin-bottom:4px}
+.ss-score{font-size:34px;font-weight:700;color:var(--green);font-family:var(--title)}
+.ss-state{font-size:10px;color:var(--white);margin-top:2px}
+
+/* ══════════════════════
+   SCREEN 3 — IA
+══════════════════════ */
+#screen-ai{background:radial-gradient(circle at 50% 30%,#080510 0%,#020308 55%,#000 100%)}
+.ai-brain-wrap{position:relative;width:60px;height:60px;margin:2px auto 8px}
+.ai-brain-wrap canvas{position:absolute;inset:0}
+.rec-card{width:100%;background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:11px;padding:10px 11px;margin-bottom:6px;display:flex;align-items:flex-start;gap:8px;cursor:pointer;transition:background 0.2s}
+.rec-card:active{background:rgba(255,255,255,0.08)}
+.rec-card.urgent{border-color:rgba(255,68,85,0.28);background:rgba(255,68,85,0.04)}
+.rec-card.info{border-color:rgba(0,229,255,0.2);background:rgba(0,229,255,0.03)}
+.rec-card.good{border-color:rgba(0,255,136,0.2);background:rgba(0,255,136,0.03)}
+.rec-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.rec-title{font-size:10px;font-weight:600;color:var(--white);margin-bottom:2px}
+.rec-text{font-size:8.5px;color:var(--muted);line-height:1.4}
+.rec-conf{font-size:7.5px;color:var(--muted2);margin-top:3px;font-family:var(--mono)}
+.conf-bar{height:2px;background:rgba(255,255,255,0.08);border-radius:1px;margin-top:3px;overflow:hidden}
+.conf-fill{height:100%;border-radius:1px;background:var(--cyan);transition:width 1.2s ease}
+.trend-row{display:flex;gap:5px;width:100%;margin-top:4px}
+.trend-item{flex:1;background:rgba(255,255,255,0.03);border:0.5px solid var(--border);border-radius:8px;padding:6px;text-align:center}
+.trend-val{font-size:12px;font-weight:600;font-family:var(--title);color:var(--white)}
+.trend-lbl{font-size:7px;color:var(--muted);margin-top:1px}
+.trend-arrow{font-size:8px}
+
+/* ══════════════════════
+   SCREEN 4 — ENERGÍA
+══════════════════════ */
+#screen-energy{background:radial-gradient(circle at 50% 25%,#0a0700 0%,#030200 55%,#000 100%)}
+.mode-sel{display:flex;gap:3px;background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:11px;padding:4px;width:100%;margin-bottom:10px}
+.ms-btn{flex:1;padding:7px 3px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-family:var(--title);font-size:10px;font-weight:600;cursor:pointer;transition:all 0.22s}
+.ms-btn.eco.active{background:rgba(0,255,136,0.14);color:var(--green)}
+.ms-btn.bal.active{background:rgba(255,179,0,0.14);color:var(--amber)}
+.ms-btn.max.active{background:rgba(255,68,85,0.14);color:var(--red)}
+.bat-ring-wrap{position:relative;width:110px;height:110px;margin:0 auto 10px}
+.bat-svg{width:110px;height:110px;transform:rotate(-90deg)}
+.bat-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.bat-pct{font-size:26px;font-weight:700;color:var(--white);font-family:var(--title)}
+.bat-days{font-size:9px;color:var(--green);font-family:var(--mono);margin-top:1px;transition:color 0.3s}
+.charge-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;width:100%;margin-bottom:8px}
+.cg-card{background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:9px;padding:9px 5px;text-align:center;cursor:pointer;transition:background 0.2s}
+.cg-card:active{background:rgba(255,255,255,0.08)}
+.cg-icon{font-size:18px;margin-bottom:3px}
+.cg-name{font-size:7.5px;color:var(--muted);font-family:var(--mono)}
+.cg-status{font-size:7px;padding:2px 4px;border-radius:4px;margin-top:3px;display:inline-block}
+.solar-sim{width:100%;background:rgba(255,179,0,0.04);border:0.5px solid rgba(255,179,0,0.2);border-radius:11px;padding:11px;position:relative;overflow:hidden;margin-bottom:7px}
+.solar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.solar-title{font-size:8.5px;color:var(--amber);letter-spacing:2px;text-transform:uppercase;font-family:var(--mono)}
+.solar-btn{background:rgba(255,179,0,0.1);border:0.5px solid rgba(255,179,0,0.3);color:var(--amber);font-size:8.5px;padding:4px 9px;border-radius:6px;cursor:pointer;font-family:var(--mono);letter-spacing:1px;transition:background 0.2s}
+.solar-btn:active{background:rgba(255,179,0,0.22)}
+.solar-stats{display:flex;gap:6px}
+.solar-stat{flex:1;text-align:center}
+.ss-v{font-size:13px;font-weight:600;color:var(--amber);font-family:var(--mono)}
+.ss-l{font-size:7px;color:var(--muted)}
+.solar-bar-wrap{height:2.5px;background:rgba(255,179,0,0.12);border-radius:2px;margin-top:7px;overflow:hidden}
+.solar-bar{height:100%;background:linear-gradient(90deg,var(--amber),#ffe066);border-radius:2px;width:0%;transition:width 0.5s ease}
+.solar-rays-area{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;display:none}
+.s-ray{position:absolute;width:1.5px;top:-10px;background:linear-gradient(to bottom,rgba(255,179,0,0.55),transparent);animation:rayFall 1.4s infinite linear}
+.s-particle{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--amber);animation:particleFloat 2s infinite ease-in-out}
+.kinetic-sim{width:100%;background:rgba(0,229,255,0.04);border:0.5px solid rgba(0,229,255,0.14);border-radius:11px;padding:11px;margin-bottom:7px}
+canvas.kin-canvas{width:100%;height:40px;display:block}
+.kin-stats{display:flex;gap:6px;margin-top:7px}
+.kin-stat{flex:1;text-align:center}
+.ks-val{font-size:12px;font-weight:600;color:var(--cyan);font-family:var(--mono)}
+.ks-lbl{font-size:7px;color:var(--muted)}
+.usb-card{width:100%;background:rgba(255,255,255,0.03);border:0.5px solid var(--border);border-radius:11px;padding:11px;display:flex;align-items:center;gap:9px;cursor:pointer;transition:background 0.2s}
+.usb-card:active{background:rgba(255,255,255,0.07)}
+.usb-icon{font-size:22px}
+.usb-name{font-size:10px;font-weight:600;color:var(--white)}
+.usb-detail{font-size:8px;color:var(--muted);margin-top:1px}
+/* Autonomy section */
+.auto-section{width:100%;background:rgba(0,255,136,0.03);border:0.5px solid rgba(0,255,136,0.1);border-radius:11px;padding:11px;margin-bottom:7px}
+.auto-title{font-size:8px;color:var(--green);letter-spacing:2px;text-transform:uppercase;font-family:var(--mono);margin-bottom:8px}
+.auto-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.auto-label{font-size:9px;color:var(--muted)}
+.auto-val{font-size:11px;font-weight:600;color:var(--white);font-family:var(--mono)}
+canvas.auto-canvas{width:100%;height:36px;display:block;margin-top:4px}
+
+/* ══════════════════════
+   SCREEN 5 — SOSTENIBILIDAD
+══════════════════════ */
+#screen-sustain{background:radial-gradient(circle at 50% 20%,#030a05 0%,#010304 55%,#000 100%)}
+.co2-hero{width:100%;background:linear-gradient(135deg,rgba(0,255,136,0.1),rgba(0,229,255,0.05));border:0.5px solid rgba(0,255,136,0.25);border-radius:13px;padding:14px;text-align:center;margin-bottom:7px;cursor:pointer;transition:background 0.2s}
+.co2-hero:active{background:rgba(0,255,136,0.08)}
+.co2-lbl{font-size:7.5px;color:var(--green);letter-spacing:2.5px;text-transform:uppercase;font-family:var(--mono);margin-bottom:3px}
+.co2-val{font-size:38px;font-weight:700;color:var(--green);font-family:var(--title);line-height:1;text-shadow:0 0 30px rgba(0,255,136,0.3)}
+.co2-unit{font-size:11px;color:var(--muted);margin-top:2px}
+.co2-sub{font-size:8.5px;color:rgba(0,255,136,0.65);margin-top:5px}
+.sustain-row{display:flex;gap:5px;width:100%;margin-bottom:7px}
+.s-stat{flex:1;background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:9px;padding:9px 5px;text-align:center;cursor:pointer;transition:background 0.2s}
+.s-stat:active{background:rgba(255,255,255,0.08)}
+.s-stat-val{font-size:14px;font-weight:700;color:var(--white);font-family:var(--title)}
+.s-stat-unit{font-size:7px;color:var(--muted)}
+.s-stat-lbl{font-size:7px;color:var(--muted);margin-top:2px}
+.weekly-chart-wrap{width:100%;background:rgba(255,255,255,0.03);border:0.5px solid var(--border);border-radius:11px;padding:11px;margin-bottom:7px}
+.wc-title{font-size:7.5px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-family:var(--mono);margin-bottom:8px}
+.wc-legend{display:flex;gap:10px;margin-bottom:6px}
+.wc-leg-item{display:flex;align-items:center;gap:3px;font-size:7.5px;color:var(--muted)}
+.wc-leg-dot{width:6px;height:6px;border-radius:1px}
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:58px}
+.bar-group{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;cursor:pointer}
+.bar-stack{display:flex;flex-direction:column;justify-content:flex-end;gap:1px;width:100%;height:48px}
+.bar-seg{border-radius:2px 2px 0 0;min-height:2px;transition:height 0.8s ease,filter 0.2s}
+.bar-group:hover .bar-seg,.bar-group:active .bar-seg{filter:brightness(1.4)}
+.bar-day{font-size:7px;color:var(--muted);font-family:var(--mono)}
+.impact-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;width:100%}
+.impact-card{background:rgba(255,255,255,0.03);border:0.5px solid var(--border);border-radius:9px;padding:9px;cursor:pointer;transition:background 0.2s}
+.impact-card:active{background:rgba(255,255,255,0.07)}
+.impact-icon{font-size:15px;margin-bottom:3px}
+.impact-val{font-size:12px;font-weight:600;color:var(--green)}
+.impact-lbl{font-size:7px;color:var(--muted);line-height:1.3;margin-top:1px}
+
+/* ══════════════════════
+   SCREEN 6 — MODULARIDAD
+══════════════════════ */
+#screen-modular{background:radial-gradient(circle at 50% 30%,#050a10 0%,#010408 55%,#000 100%)}
+.tabs{display:flex;gap:3px;background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:10px;padding:3px;width:100%;margin-bottom:9px}
+.tab{flex:1;padding:7px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-family:var(--font);font-size:9.5px;font-weight:500;cursor:pointer;transition:all 0.2s}
+.tab.active{background:rgba(0,229,255,0.12);color:var(--cyan)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.module-row{display:flex;align-items:center;justify-content:space-between;padding:9px 11px;background:rgba(255,255,255,0.03);border:0.5px solid var(--border);border-radius:9px;margin-bottom:5px;cursor:pointer;transition:background 0.2s}
+.module-row:active{background:rgba(255,255,255,0.07)}
+.module-row.expanded .mod-detail{display:block}
+.mod-name{font-size:10.5px;font-weight:500;color:var(--white)}
+.mod-life{font-size:7.5px;color:var(--muted);margin-top:1px}
+.mod-detail{display:none;margin-top:7px;padding-top:7px;border-top:0.5px solid var(--border)}
+.mod-detail-text{font-size:8px;color:var(--muted);line-height:1.5}
+.mod-status{font-size:7px;padding:2px 5px;border-radius:4px;font-family:var(--mono);flex-shrink:0}
+.ms-act{background:rgba(0,255,136,0.15);color:var(--green)}
+.ms-upd{background:rgba(0,229,255,0.15);color:var(--cyan)}
+.ms-rep{background:rgba(255,179,0,0.15);color:var(--amber)}
+.about-hero{text-align:center;margin-bottom:11px}
+.about-logo{font-family:var(--title);font-size:20px;font-weight:700;color:var(--white);letter-spacing:2px}
+.about-os{font-size:8.5px;color:var(--cyan);letter-spacing:3px;font-family:var(--mono);margin-top:1px}
+.compat-row{display:flex;gap:5px;justify-content:center;margin-top:5px}
+.compat-chip{font-size:7.5px;padding:2px 7px;border-radius:5px;font-family:var(--mono)}
+.cc-and{background:rgba(0,255,136,0.1);color:var(--green);border:0.5px solid rgba(0,255,136,0.2)}
+.cc-ios{background:rgba(0,229,255,0.1);color:var(--cyan);border:0.5px solid rgba(0,229,255,0.2)}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;width:100%}
+.about-card{background:rgba(255,255,255,0.03);border:0.5px solid var(--border);border-radius:9px;padding:9px;cursor:pointer;transition:background 0.2s}
+.about-card:active{background:rgba(255,255,255,0.07)}
+.ab-val{font-size:13px;font-weight:700;color:var(--white);font-family:var(--title)}
+.ab-lbl{font-size:7.5px;color:var(--muted);margin-top:1px}
+.ab-accent{color:var(--green)}
+
+/* ══════════════════════
+   SCREEN 7 — CONECTIVIDAD
+══════════════════════ */
+#screen-connect{background:radial-gradient(circle at 50% 25%,#050a10 0%,#010408 55%,#000 100%)}
+.conn-card{width:100%;background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:11px;padding:11px 13px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background 0.2s}
+.conn-card:active{background:rgba(255,255,255,0.08)}
+.conn-left{display:flex;align-items:center;gap:9px}
+.conn-icon{font-size:20px}
+.conn-name{font-size:10.5px;font-weight:600;color:var(--white)}
+.conn-detail{font-size:7.5px;color:var(--muted);margin-top:1px}
+.conn-indicator{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ci-on{background:var(--green);animation:pulseGlow 2s infinite}
+.ci-sync{background:var(--cyan);animation:pulseGlow 1.2s infinite}
+.ci-off{background:rgba(255,255,255,0.18)}
+.sync-anim-wrap{width:100%;background:rgba(0,229,255,0.04);border:0.5px solid rgba(0,229,255,0.14);border-radius:11px;padding:11px;margin-bottom:6px}
+.sync-title{font-size:8px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;font-family:var(--mono);margin-bottom:8px}
+canvas.sync-canvas{width:100%;height:36px;display:block}
+.sync-status{font-size:8.5px;color:var(--muted);margin-top:5px;font-family:var(--mono)}
+.notif-card{width:100%;background:rgba(255,255,255,0.03);border:0.5px solid var(--border);border-radius:11px;padding:11px;margin-bottom:6px}
+.notif-title{font-size:8px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-family:var(--mono);margin-bottom:7px}
+.notif-item{display:flex;align-items:flex-start;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity 0.2s}
+.notif-item:last-child{border-bottom:none}
+.notif-item:active{opacity:0.6}
+.notif-app{font-size:9px;color:var(--white);font-weight:500}
+.notif-msg{font-size:7.5px;color:var(--muted);margin-top:1px}
+.notif-time{font-size:7px;color:var(--muted2);font-family:var(--mono);flex-shrink:0;margin-left:6px}
+
+/* ══════════════════
+   ANIMATIONS
+══════════════════ */
+@keyframes pulseGlow{0%,100%{opacity:1;box-shadow:0 0 5px currentColor}50%{opacity:0.4;box-shadow:0 0 10px currentColor}}
+@keyframes rayFall{0%{transform:translateY(0);opacity:0.9}100%{transform:translateY(130px);opacity:0}}
+@keyframes particleFloat{0%,100%{transform:translateY(0) scale(1);opacity:0.9}50%{transform:translateY(-18px) scale(1.6);opacity:0.35}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes rotateSlow{to{transform:rotate(360deg)}}
+@keyframes beatPulse{0%,100%{transform:scale(1)}15%{transform:scale(1.12)}30%{transform:scale(1)}}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 10px rgba(0,255,136,0.12)}50%{box-shadow:0 0 30px rgba(0,255,136,0.25)}}
+
+/* Responsive */
+@media(max-width:480px){:root{--ws:min(86vw,320px)}.outer-ui{gap:10px}.brand-logo{font-size:20px}}
+@media(max-height:680px){:root{--ws:min(76vh,310px)}.outer-ui{gap:8px}.brand-header,.nav-labels{display:none}}
+</style>
+</head>
+<body>
+<div class="outer-ui">
+
+  <div class="brand-header">
+    <div class="brand-logo">NEO <span>PULSE</span></div>
+    <div class="brand-tag">Smartwatch Conceptual · Universidad Libre · 2025</div>
+  </div>
+
+  <div class="watch-shell" id="watchShell">
+    <div class="bezel-ticks" id="bezelTicks"></div>
+    <div class="watch-bezel" style="animation:glowPulse 4s infinite">
+      <div class="watch-screen" id="watchScreen">
+
+        <!-- ════════════ SCREEN 1: HOME ════════════ -->
+        <div class="screen active" id="screen-home">
+          <div class="home-inner" id="home-inner">
+            <div class="home-top">
+              <div class="signal-dots">
+                <div class="signal-dot sd1"></div><div class="signal-dot sd2"></div>
+                <div class="signal-dot sd3"></div><div class="signal-dot sd4"></div>
+              </div>
+              <div class="battery-pill">⚡ <span id="bat-pct-home">82</span>%</div>
+            </div>
+            <div class="time-wrap">
+              <div class="time-big"><span id="clock">--:--</span></div>
+              <div class="date-line" id="datedisp">—</div>
+              <div class="greeting-line" id="greeting">—</div>
+            </div>
+            <div class="score-ring-wrap" id="score-ring" style="cursor:pointer" onclick="scoreRingTap()">
+              <svg class="score-svg-small" viewBox="0 0 76 76">
+                <circle cx="38" cy="38" r="32" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="5"/>
+                <circle cx="38" cy="38" r="32" fill="none" stroke="url(#sg)" stroke-width="5"
+                  stroke-dasharray="201" stroke-dashoffset="30" stroke-linecap="round" id="score-arc"/>
+                <defs>
+                  <linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#00ff88"/><stop offset="100%" stop-color="#00e5ff"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div class="score-inner">
+                <div class="score-n" id="score-num">87</div>
+                <div class="score-l">SCORE</div>
+                <div class="score-s" id="score-state">Excelente</div>
+              </div>
+            </div>
+            <div class="quick-stats">
+              <div class="qs" style="--qs-color:#ff4455" onclick="goToScreen(1)">
+                <div class="qs-val" id="bpm-home">72</div><div class="qs-unit">bpm</div><div class="qs-lbl">Ritmo</div>
+              </div>
+              <div class="qs" style="--qs-color:#00e5ff" onclick="goToScreen(1)">
+                <div class="qs-val">98</div><div class="qs-unit">%</div><div class="qs-lbl">SpO₂</div>
+              </div>
+              <div class="qs" style="--qs-color:#00ff88" onclick="goToScreen(3)">
+                <div class="qs-val" id="steps-home">8.3</div><div class="qs-unit">k</div><div class="qs-lbl">Pasos</div>
+              </div>
+            </div>
+            <div class="mode-chip" id="mode-chip-home" onclick="goToScreen(3)">🌿 ECO · <span id="chip-days">31 días</span></div>
+            <div class="ai-strip" onclick="goToScreen(2)">
+              <div class="ai-dot"></div>
+              <div class="ai-msg" id="ai-summary">Análisis IA activo…</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════════════ SCREEN 2: SALUD 360 ════════════ -->
+        <div class="screen" id="screen-health">
+          <div class="scr-inner">
+            <div class="scr-pad">
+              <div class="screen-title"><span class="stitle-dot"></span>SALUD 360°</div>
+              <!-- ECG -->
+              <div class="ecg-block">
+                <div class="ecg-header">
+                  <div class="ecg-title">● ECG EN VIVO</div>
+                  <div><span class="bpm-live" id="bpm-display">72</span><span style="font-size:8px;color:var(--muted)"> BPM</span></div>
+                </div>
+                <canvas class="ecg-canvas" id="ecg-main"></canvas>
+              </div>
+              <!-- Métricas 3 col -->
+              <div class="sg3">
+                <div class="stat-tile" style="--tc:#00e5ff" onclick="expandTile(this,'SpO₂ normal. Saturación de oxígeno óptima en sangre.')">
+                  <div class="st-val">98<span class="st-unit">%</span></div>
+                  <div class="st-lbl">SpO₂</div>
+                  <div class="pbar"><div class="pfill" style="width:98%;background:var(--cyan)"></div></div>
+                </div>
+                <div class="stat-tile" style="--tc:#ffb300" onclick="expandTile(this,'Temperatura dentro del rango normal. Sin fiebre.')">
+                  <div class="st-val">36.4<span class="st-unit">°C</span></div>
+                  <div class="st-lbl">Temp.</div>
+                  <div class="pbar"><div class="pfill" style="width:55%;background:var(--amber)"></div></div>
+                </div>
+                <div class="stat-tile" style="--tc:#00ff88" onclick="expandTile(this,'Estrés bajo. Respuesta autonómica equilibrada.')">
+                  <div class="st-val">24<span class="st-unit">%</span></div>
+                  <div class="st-lbl">Estrés</div>
+                  <div class="pbar"><div class="pfill" style="width:24%;background:var(--green)"></div></div>
+                </div>
+                <div class="stat-tile" style="--tc:#b06aff" onclick="expandTile(this,'Cortisol estimado dentro del rango saludable matutino.')">
+                  <div class="st-val">12<span class="st-unit">µg</span></div>
+                  <div class="st-lbl">Cortisol</div>
+                  <div class="pbar"><div class="pfill" style="width:45%;background:var(--purple)"></div></div>
+                </div>
+                <div class="stat-tile" style="--tc:#00ff88" onclick="expandTile(this,'Excelente recuperación muscular y celular post-sueño.')">
+                  <div class="st-val">87<span class="st-unit">%</span></div>
+                  <div class="st-lbl">Recuper.</div>
+                  <div class="pbar"><div class="pfill" style="width:87%;background:var(--green)"></div></div>
+                </div>
+                <div class="stat-tile" style="--tc:#00e5ff" onclick="expandTile(this,'HRV normal. Variabilidad cardíaca indica buena adaptabilidad.')">
+                  <div class="st-val">16<span class="st-unit">ms</span></div>
+                  <div class="st-lbl">HRV</div>
+                  <div class="pbar"><div class="pfill" style="width:60%;background:var(--cyan)"></div></div>
+                </div>
+              </div>
+              <!-- Sueño expandible -->
+              <div class="sleep-card" onclick="toggleSleepDetail()">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div>
+                    <div class="sleep-main">7h 24m</div>
+                    <div class="sleep-sub">Última sesión · Calidad Buena</div>
+                  </div>
+                  <div style="text-align:right">
+                    <div style="font-size:9px;color:var(--purple);font-family:var(--mono)">22:48 → 06:12</div>
+                    <div id="sleep-arrow" style="font-size:10px;color:var(--muted);margin-top:3px;transition:transform 0.25s">▾</div>
+                  </div>
+                </div>
+                <div class="sleep-stages">
+                  <div class="stage"><div class="stage-b" style="background:rgba(176,106,255,0.55);height:18px"></div><div class="stage-l">Profundo</div></div>
+                  <div class="stage"><div class="stage-b" style="background:rgba(0,229,255,0.45);height:18px"></div><div class="stage-l">REM</div></div>
+                  <div class="stage"><div class="stage-b" style="background:rgba(255,255,255,0.18);height:18px"></div><div class="stage-l">Ligero</div></div>
+                </div>
+                <div id="sleep-detail" style="display:none;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">
+                  <div style="display:flex;gap:6px">
+                    <div style="flex:1;text-align:center"><div style="font-size:12px;font-weight:600;color:var(--purple);font-family:var(--title)">2h 10m</div><div style="font-size:7px;color:var(--muted)">Sueño profundo</div></div>
+                    <div style="flex:1;text-align:center"><div style="font-size:12px;font-weight:600;color:var(--cyan);font-family:var(--title)">1h 45m</div><div style="font-size:7px;color:var(--muted)">REM</div></div>
+                    <div style="flex:1;text-align:center"><div style="font-size:12px;font-weight:600;color:var(--white);font-family:var(--title)">3h 29m</div><div style="font-size:7px;color:var(--muted)">Ligero</div></div>
+                  </div>
+                  <div style="margin-top:7px;font-size:8px;color:var(--muted);line-height:1.45">Eficiencia del sueño: 91%. Se detectaron 2 interrupciones breves. Ritmo circadiano estable.</div>
+                </div>
+              </div>
+              <!-- Salud Score -->
+              <div class="salud-score-card">
+                <div class="ss-label">SALUD 360 SCORE</div>
+                <div class="ss-score">91</div>
+                <div class="ss-state">✦ Estado: Excelente</div>
+                <div style="display:flex;gap:5px;justify-content:center;margin-top:8px">
+                  <span class="chip chip-green">Corazón ✓</span>
+                  <span class="chip chip-cyan">O₂ ✓</span>
+                  <span class="chip chip-purple">Sueño ✓</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="scroll-hint"></div>
+        </div>
+
+        <!-- ════════════ SCREEN 3: IA PREDICTIVA ════════════ -->
+        <div class="screen" id="screen-ai">
+          <div class="scr-inner">
+            <div class="scr-pad">
+              <div class="screen-title" style="color:var(--purple)"><span class="stitle-dot" style="background:var(--purple)"></span>IA PREDICTIVA</div>
+              <!-- Brain canvas -->
+              <div class="ai-brain-wrap"><canvas id="brain-canvas" width="60" height="60"></canvas></div>
+              <!-- Metrics -->
+              <div class="sg3" style="margin-bottom:8px">
+                <div class="trend-item">
+                  <div class="trend-val" id="bpm-ai">72</div>
+                  <div class="trend-lbl">BPM</div>
+                </div>
+                <div class="trend-item">
+                  <div class="trend-val">24%</div>
+                  <div class="trend-lbl">Estrés</div>
+                </div>
+                <div class="trend-item">
+                  <div class="trend-val">87%</div>
+                  <div class="trend-lbl">Recup.</div>
+                </div>
+              </div>
+              <!-- Recomendaciones expandibles -->
+              <div class="rec-card good" onclick="expandRec(this)">
+                <div class="rec-icon">🌙</div>
+                <div style="flex:1">
+                  <div class="rec-title">Recuperación Positiva</div>
+                  <div class="rec-text">Métricas muestran regeneración celular óptima.</div>
+                  <div class="conf-bar"><div class="conf-fill" style="width:92%"></div></div>
+                  <div class="rec-conf">Confianza: 92% · Tendencia: ↑ estable</div>
+                  <div class="rec-detail" style="display:none;margin-top:5px;font-size:8px;color:var(--muted);line-height:1.45">Continúa con el ciclo de sueño actual. La variabilidad cardíaca indica excelente adaptación al estrés. Mantén hidratación mayor a 2L/día.</div>
+                </div>
+                <div style="font-size:10px;color:var(--muted);flex-shrink:0;margin-left:4px;transition:transform 0.25s" class="expand-icon">▾</div>
+              </div>
+              <div class="rec-card info" onclick="expandRec(this)">
+                <div class="rec-icon">🌿</div>
+                <div style="flex:1">
+                  <div class="rec-title">Modo ECO Recomendado</div>
+                  <div class="rec-text">Actividad baja. ECO extiende autonomía a 31 días.</div>
+                  <div class="conf-bar"><div class="conf-fill" style="width:85%;background:var(--green)"></div></div>
+                  <div class="rec-conf">Confianza: 85% · Ahorro estimado: +13 días</div>
+                  <div class="rec-detail" style="display:none;margin-top:5px;font-size:8px;color:var(--muted);line-height:1.45">Con modo ECO activo se desactivan sensores de alta frecuencia, reduciendo consumo en 68%. Sensores de salud siguen activos en ciclos de 5 min.</div>
+                </div>
+                <div style="font-size:10px;color:var(--muted);flex-shrink:0;margin-left:4px;transition:transform 0.25s" class="expand-icon">▾</div>
+              </div>
+              <div class="rec-card urgent" onclick="expandRec(this)">
+                <div class="rec-icon">⚡</div>
+                <div style="flex:1">
+                  <div class="rec-title">Estrés Superior al Promedio</div>
+                  <div class="rec-text">Cortisol 12µg/L. Pausa de 10 min recomendada.</div>
+                  <div class="conf-bar"><div class="conf-fill" style="width:78%;background:var(--red)"></div></div>
+                  <div class="rec-conf">Confianza: 78% · Tendencia: ↑ semana</div>
+                  <div class="rec-detail" style="display:none;margin-top:5px;font-size:8px;color:var(--muted);line-height:1.45">Se detecta patrón de estrés acumulativo. Técnicas de respiración 4-7-8 reducen cortisol en ~18%. Considerar dormir 45 min adicionales esta noche.</div>
+                </div>
+                <div style="font-size:10px;color:var(--muted);flex-shrink:0;margin-left:4px;transition:transform 0.25s" class="expand-icon">▾</div>
+              </div>
+              <div class="rec-card info" onclick="expandRec(this)">
+                <div class="rec-icon">🏃</div>
+                <div style="flex:1">
+                  <div class="rec-title">Actividad -8% Semanal</div>
+                  <div class="rec-text">Meta pasos: 8.3k/10k. Caminata 20 min tarde.</div>
+                  <div class="conf-bar"><div class="conf-fill" style="width:70%;background:var(--amber)"></div></div>
+                  <div class="rec-conf">Confianza: 70% · Mejor hora: 18:30</div>
+                  <div class="rec-detail" style="display:none;margin-top:5px;font-size:8px;color:var(--muted);line-height:1.45">Una caminata de 20 minutos genera ~0.8 mWh de energía cinética y quema aproximadamente 90 kcal. La temperatura corporal favorece actividad aeróbica ahora.</div>
+                </div>
+                <div style="font-size:10px;color:var(--muted);flex-shrink:0;margin-left:4px;transition:transform 0.25s" class="expand-icon">▾</div>
+              </div>
+              <!-- Tendencias semanales -->
+              <div style="width:100%;background:rgba(255,255,255,0.03);border:0.5px solid var(--border);border-radius:11px;padding:11px;margin-top:2px">
+                <div style="font-size:8px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-family:var(--mono);margin-bottom:8px">TENDENCIAS 7 DÍAS</div>
+                <canvas id="trend-canvas" style="width:100%;height:42px;display:block"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="scroll-hint" style="background:rgba(176,106,255,0.3)"></div>
+        </div>
+
+        <!-- ════════════ SCREEN 4: ENERGÍA ════════════ -->
+        <div class="screen" id="screen-energy">
+          <div class="scr-inner">
+            <div class="scr-pad">
+              <div class="screen-title" style="color:var(--amber)"><span class="stitle-dot" style="background:var(--amber)"></span>ENERGÍA</div>
+              <div class="mode-sel">
+                <button class="ms-btn eco active" id="ms-eco" onclick="setEnergyMode('eco',this)">🌿 ECO</button>
+                <button class="ms-btn bal" id="ms-bal" onclick="setEnergyMode('balanced',this)">⚖ BAL</button>
+                <button class="ms-btn max" id="ms-max" onclick="setEnergyMode('max',this)">🔥 MAX</button>
+              </div>
+              <div class="bat-ring-wrap">
+                <svg class="bat-svg" viewBox="0 0 110 110">
+                  <circle cx="55" cy="55" r="46" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="7"/>
+                  <circle cx="55" cy="55" r="46" fill="none" stroke="url(#bg2)" stroke-width="7"
+                    stroke-dasharray="289" stroke-dashoffset="52" stroke-linecap="round" id="bat-arc"/>
+                  <defs>
+                    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#00ff88" id="bat-grad-start"/>
+                      <stop offset="100%" stop-color="#00e5ff" id="bat-grad-end"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div class="bat-inner">
+                  <div class="bat-pct">82%</div>
+                  <div class="bat-days" id="autonomy-text">31 días</div>
+                </div>
+              </div>
+              <!-- Charge sources -->
+              <div class="charge-grid">
+                <div class="cg-card" onclick="toggleSolar()">
+                  <div class="cg-icon">☀️</div>
+                  <div class="cg-name">SOLAR</div>
+                  <div class="cg-status s-active chip-green" id="solar-status-chip">Activo</div>
+                </div>
+                <div class="cg-card" onclick="showKineticDetail()">
+                  <div class="cg-icon">🏃</div>
+                  <div class="cg-name">CINÉTICA</div>
+                  <div class="cg-status chip-amber">Disponible</div>
+                </div>
+                <div class="cg-card" onclick="toggleUSB()">
+                  <div class="cg-icon" id="usb-icon">🔌</div>
+                  <div class="cg-name">USB-C</div>
+                  <div class="cg-status chip-red" id="usb-status-chip" style="font-size:7px;padding:2px 4px;border-radius:4px;display:inline-block">Desconect.</div>
+                </div>
+              </div>
+              <!-- Solar -->
+              <div class="solar-sim" id="solar-sim">
+                <div class="solar-rays-area" id="solar-rays"></div>
+                <div class="solar-header">
+                  <div class="solar-title">☀ SOLAR EXPOSURE</div>
+                  <button class="solar-btn" id="solar-btn" onclick="toggleSolar()">ACTIVAR</button>
+                </div>
+                <div class="solar-stats">
+                  <div class="solar-stat"><div class="ss-v" id="lux">—</div><div class="ss-l">Lux</div></div>
+                  <div class="solar-stat"><div class="ss-v" id="solar-energy">—</div><div class="ss-l">mWh gen.</div></div>
+                  <div class="solar-stat"><div class="ss-v" id="solar-time">0:00</div><div class="ss-l">Exposición</div></div>
+                </div>
+                <div class="solar-bar-wrap"><div class="solar-bar" id="solar-bar"></div></div>
+              </div>
+              <!-- Kinetic -->
+              <div class="kinetic-sim">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+                  <div style="font-size:8.5px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;font-family:var(--mono)">⚡ ENERGÍA CINÉTICA</div>
+                  <div style="font-size:8.5px;color:var(--cyan);font-family:var(--mono)" id="kin-mwh">83.5 mWh</div>
+                </div>
+                <canvas class="kin-canvas" id="kin-canvas"></canvas>
+                <div class="kin-stats">
+                  <div class="kin-stat"><div class="ks-val" id="kin-steps">8,350</div><div class="ks-lbl">Pasos</div></div>
+                  <div class="kin-stat"><div class="ks-val" id="kin-energy">83.5</div><div class="ks-lbl">mWh gen.</div></div>
+                  <div class="kin-stat"><div class="ks-val">0.01</div><div class="ks-lbl">mWh/paso</div></div>
+                </div>
+              </div>
+              <!-- USB-C -->
+              <div class="usb-card" id="usb-card" onclick="toggleUSB()">
+                <div class="usb-icon" id="usb-card-icon">🔌</div>
+                <div style="flex:1">
+                  <div class="usb-name" id="usb-card-name">USB-C Desconectado</div>
+                  <div class="usb-detail" id="usb-card-detail">Toca para simular conexión</div>
+                </div>
+                <div style="font-size:11px;color:var(--muted);font-family:var(--mono)" id="usb-speed">—</div>
+              </div>
+              <!-- Autonomía panel -->
+              <div class="auto-section">
+                <div class="auto-title">PANEL DE AUTONOMÍA</div>
+                <div class="auto-row">
+                  <span class="auto-label">Consumo actual</span>
+                  <span class="auto-val" id="auto-current">12 mW</span>
+                </div>
+                <div class="auto-row">
+                  <span class="auto-label">Consumo promedio</span>
+                  <span class="auto-val">18 mW</span>
+                </div>
+                <div class="auto-row">
+                  <span class="auto-label">Energía recuperada</span>
+                  <span class="auto-val" style="color:var(--green)">+4.2 mWh/h</span>
+                </div>
+                <canvas class="auto-canvas" id="auto-canvas"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="scroll-hint" style="background:rgba(255,179,0,0.3)"></div>
+        </div>
+
+        <!-- ════════════ SCREEN 5: SOSTENIBILIDAD ════════════ -->
+        <div class="screen" id="screen-sustain">
+          <div class="scr-inner">
+            <div class="scr-pad">
+              <div class="screen-title"><span class="stitle-dot"></span>SOSTENIBILIDAD</div>
+              <div class="co2-hero" onclick="animateCO2()">
+                <div class="co2-lbl">CO₂ EVITADO ESTE MES</div>
+                <div class="co2-val" id="co2-val">18.7</div>
+                <div class="co2-unit">kg CO₂eq</div>
+                <div class="co2-sub">↑ 12% vs. mes anterior · Toca para actualizar</div>
+              </div>
+              <div class="sustain-row">
+                <div class="s-stat" onclick="pulseCard(this,'#00ff88')">
+                  <div class="s-stat-val">245<span class="s-stat-unit">mWh</span></div>
+                  <div class="s-stat-lbl">☀ Solar gen.</div>
+                </div>
+                <div class="s-stat" onclick="pulseCard(this,'#00e5ff')">
+                  <div class="s-stat-val">83<span class="s-stat-unit">mWh</span></div>
+                  <div class="s-stat-lbl">⚡ Cinético</div>
+                </div>
+                <div class="s-stat" onclick="pulseCard(this,'#00ff88')">
+                  <div class="s-stat-val">31<span class="s-stat-unit">días</span></div>
+                  <div class="s-stat-lbl">🔋 Autonomía</div>
+                </div>
+              </div>
+              <div class="weekly-chart-wrap">
+                <div class="wc-title">GENERACIÓN SEMANAL (mWh)</div>
+                <div class="wc-legend">
+                  <div class="wc-leg-item"><div class="wc-leg-dot" style="background:var(--amber)"></div>Solar</div>
+                  <div class="wc-leg-item"><div class="wc-leg-dot" style="background:var(--cyan)"></div>Cinética</div>
+                </div>
+                <div class="bar-chart" id="weekly-chart"></div>
+              </div>
+              <div class="impact-grid">
+                <div class="impact-card" onclick="pulseCard(this,'#00ff88')">
+                  <div class="impact-icon">♻️</div>
+                  <div class="impact-val">82%</div>
+                  <div class="impact-lbl">Materiales reciclados en fabricación</div>
+                </div>
+                <div class="impact-card" onclick="pulseCard(this,'#00ff88')">
+                  <div class="impact-icon">🌱</div>
+                  <div class="impact-val">A+</div>
+                  <div class="impact-lbl">Calificación sostenibilidad DfE</div>
+                </div>
+                <div class="impact-card" onclick="pulseCard(this,'#00e5ff')">
+                  <div class="impact-icon">🔧</div>
+                  <div class="impact-val">8 años</div>
+                  <div class="impact-lbl">Vida útil proyectada del dispositivo</div>
+                </div>
+                <div class="impact-card" onclick="pulseCard(this,'#b06aff')">
+                  <div class="impact-icon">💎</div>
+                  <div class="impact-val">95%</div>
+                  <div class="impact-lbl">Componentes modulares reemplazables</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="scroll-hint"></div>
+        </div>
+
+        <!-- ════════════ SCREEN 6: MODULARIDAD ════════════ -->
+        <div class="screen" id="screen-modular">
+          <div class="scr-inner">
+            <div class="scr-pad">
+              <div class="screen-title" style="color:var(--cyan)"><span class="stitle-dot" style="background:var(--cyan)"></span>MODULARIDAD</div>
+              <div class="tabs">
+                <button class="tab active" onclick="switchTab('tab-modules',this)">Módulos</button>
+                <button class="tab" onclick="switchTab('tab-about',this)">Dispositivo</button>
+              </div>
+              <!-- Módulos tab -->
+              <div class="tab-content active" id="tab-modules">
+                <div class="module-row" onclick="toggleModuleDetail(this)">
+                  <div class="mod-info">
+                    <div class="mod-name">❤️ Sensor Cardíaco</div>
+                    <div class="mod-life">Vida útil: 8 años · PPG óptico</div>
+                    <div class="mod-detail"><div class="mod-detail-text">Sensor PPG tri-longitud de onda. Frecuencia de muestreo: 128 Hz. Algoritmo AFIB integrado. Precisión ±2 BPM.</div></div>
+                  </div>
+                  <div class="mod-status ms-act">ACTIVO</div>
+                </div>
+                <div class="module-row" onclick="toggleModuleDetail(this)">
+                  <div class="mod-info">
+                    <div class="mod-name">🫁 Sensor SpO₂</div>
+                    <div class="mod-life">Vida útil: 7 años · Infrarrojo</div>
+                    <div class="mod-detail"><div class="mod-detail-text">Medición continua por fotopletismografía infrarroja. Precisión ±1%. Certificación médica CE.</div></div>
+                  </div>
+                  <div class="mod-status ms-act">ACTIVO</div>
+                </div>
+                <div class="module-row" onclick="toggleModuleDetail(this)">
+                  <div class="mod-info">
+                    <div class="mod-name">🌡 Sensor Temperatura</div>
+                    <div class="mod-life">Vida útil: 6 años · NTC</div>
+                    <div class="mod-detail"><div class="mod-detail-text">Termistor NTC de alta precisión. Resolución 0.1°C. Muestreo cada 5 minutos en modo ECO.</div></div>
+                  </div>
+                  <div class="mod-status ms-act">ACTIVO</div>
+                </div>
+                <div class="module-row" onclick="toggleModuleDetail(this)">
+                  <div class="mod-info">
+                    <div class="mod-name">☀️ Panel Solar</div>
+                    <div class="mod-life">Actualización disponible v2.1</div>
+                    <div class="mod-detail"><div class="mod-detail-text">Celdas GaAs de alta eficiencia (28%). Área activa: 2.8 cm². Generación máx: 8 mW a 50,000 lux. Actualización mejora +15%.</div></div>
+                  </div>
+                  <div class="mod-status ms-upd">ACTUALIZABLE</div>
+                </div>
+                <div class="module-row" onclick="toggleModuleDetail(this)">
+                  <div class="mod-info">
+                    <div class="mod-name">⚡ Módulo Energético</div>
+                    <div class="mod-life">Generación cinética activa</div>
+                    <div class="mod-detail"><div class="mod-detail-text">Generador piezoeléctrico + bobina de inducción. Eficiencia de conversión: 38%. Genera ~0.01 mWh/paso caminando.</div></div>
+                  </div>
+                  <div class="mod-status ms-act">ACTIVO</div>
+                </div>
+                <div class="module-row" onclick="toggleModuleDetail(this)">
+                  <div class="mod-info">
+                    <div class="mod-name">🔋 Batería Modular</div>
+                    <div class="mod-life">Reemplazable · 82% salud</div>
+                    <div class="mod-detail"><div class="mod-detail-text">Li-Ion sólido 420 mAh. Ciclos estimados restantes: 680/1000. Temperatura de operación: -20°C a 60°C. Reemplazo en 3 min.</div></div>
+                  </div>
+                  <div class="mod-status ms-rep">REEMPLAZABLE</div>
+                </div>
+                <div class="module-row" onclick="toggleModuleDetail(this)">
+                  <div class="mod-info">
+                    <div class="mod-name">📡 Conectividad</div>
+                    <div class="mod-life">BT 5.5 / RL6 · ANT+</div>
+                    <div class="mod-detail"><div class="mod-detail-text">Bluetooth LE 5.5 (alcance 80m). Protocolo ANT+ para sensores externos. NFC para pagos sin contacto. Antena cerámica integrada.</div></div>
+                  </div>
+                  <div class="mod-status ms-act">ACTIVO</div>
+                </div>
+              </div>
+              <!-- About tab -->
+              <div class="tab-content" id="tab-about">
+                <div class="about-hero">
+                  <div class="about-logo">NEO PULSE</div>
+                  <div class="about-os">NeoOS v2.4.1</div>
+                  <div class="compat-row">
+                    <span class="compat-chip cc-and">Android 7.5+</span>
+                    <span class="compat-chip cc-ios">iOS 12.0+</span>
+                  </div>
+                </div>
+                <div class="about-grid">
+                  <div class="about-card" onclick="pulseCard(this,'#00ff88')"><div class="ab-val ab-accent">A+</div><div class="ab-lbl">Sostenibilidad DfE</div></div>
+                  <div class="about-card" onclick="pulseCard(this,'#00ff88')"><div class="ab-val">82%</div><div class="ab-lbl">Material reciclado</div></div>
+                  <div class="about-card" onclick="pulseCard(this,'#00e5ff')"><div class="ab-val ab-accent">95%</div><div class="ab-lbl">Diseño modular</div></div>
+                  <div class="about-card" onclick="pulseCard(this,'#00e5ff')"><div class="ab-val">8 años</div><div class="ab-lbl">Vida útil proyectada</div></div>
+                  <div class="about-card" onclick="pulseCard(this,'#b06aff')"><div class="ab-val ab-accent">Alta</div><div class="ab-lbl">Reparabilidad índice</div></div>
+                  <div class="about-card" onclick="pulseCard(this,'#b06aff')"><div class="ab-val">1.45"</div><div class="ab-lbl">AMOLED circular</div></div>
+                  <div class="about-card" onclick="pulseCard(this,'#ffb300')"><div class="ab-val">8 ATM</div><div class="ab-lbl">Resistencia al agua</div></div>
+                  <div class="about-card" onclick="pulseCard(this,'#ffb300')"><div class="ab-val">420mAh</div><div class="ab-lbl">Batería sólida</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="scroll-hint" style="background:rgba(0,229,255,0.3)"></div>
+        </div>
+
+        <!-- ════════════ SCREEN 7: CONECTIVIDAD ════════════ -->
+        <div class="screen" id="screen-connect">
+          <div class="scr-inner">
+            <div class="scr-pad">
+              <div class="screen-title" style="color:var(--cyan)"><span class="stitle-dot" style="background:var(--cyan)"></span>CONECTIVIDAD</div>
+              <div class="conn-card" onclick="toggleConn(this,'bt')">
+                <div class="conn-left"><div class="conn-icon">📶</div>
+                  <div><div class="conn-name">Bluetooth 5.5</div><div class="conn-detail" id="bt-detail">Pixel 8 Pro · Conectado · −62 dBm</div></div>
+                </div>
+                <div class="conn-indicator ci-on" id="bt-indicator"></div>
+              </div>
+              <div class="conn-card" onclick="toggleConn(this,'android')">
+                <div class="conn-left"><div class="conn-icon">🤖</div>
+                  <div><div class="conn-name">Android</div><div class="conn-detail" id="android-detail">Sincronizado hace 1 min</div></div>
+                </div>
+                <div class="conn-indicator ci-on" id="android-indicator"></div>
+              </div>
+              <div class="conn-card" onclick="toggleConn(this,'ios')">
+                <div class="conn-left"><div class="conn-icon">🍎</div>
+                  <div><div class="conn-name">iOS</div><div class="conn-detail" id="ios-detail">Disponible · No conectado</div></div>
+                </div>
+                <div class="conn-indicator ci-off" id="ios-indicator"></div>
+              </div>
+              <!-- Sync animation -->
+              <div class="sync-anim-wrap">
+                <div class="sync-title">SINCRONIZACIÓN EN VIVO</div>
+                <canvas id="sync-canvas" style="width:100%;height:36px;display:block"></canvas>
+                <div class="sync-status" id="sync-status">● Salud · ● Energía · ● Pasos · transmitiendo…</div>
+              </div>
+              <!-- Dispositivos vinculados -->
+              <div style="width:100%;background:rgba(255,255,255,0.03);border:0.5px solid var(--border);border-radius:11px;padding:11px;margin-bottom:6px">
+                <div style="font-size:8px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-family:var(--mono);margin-bottom:7px">DISPOSITIVOS VINCULADOS</div>
+                <div style="display:flex;gap:6px">
+                  <div style="flex:1;background:rgba(0,255,136,0.05);border:0.5px solid rgba(0,255,136,0.15);border-radius:8px;padding:8px;text-align:center;cursor:pointer" onclick="pulseCard(this,'#00ff88')">
+                    <div style="font-size:16px">📱</div>
+                    <div style="font-size:7.5px;color:var(--white);margin-top:2px">Pixel 8 Pro</div>
+                    <div style="font-size:7px;color:var(--green)">Principal</div>
+                  </div>
+                  <div style="flex:1;background:rgba(255,255,255,0.03);border:0.5px solid var(--border);border-radius:8px;padding:8px;text-align:center;cursor:pointer" onclick="pulseCard(this,'#00e5ff')">
+                    <div style="font-size:16px">💻</div>
+                    <div style="font-size:7.5px;color:var(--white);margin-top:2px">MacBook</div>
+                    <div style="font-size:7px;color:var(--muted)">Secundario</div>
+                  </div>
+                  <div style="flex:1;background:rgba(255,255,255,0.03);border:0.5px solid var(--border);border-radius:8px;padding:8px;text-align:center;cursor:pointer" onclick="addDevice(this)">
+                    <div style="font-size:16px">➕</div>
+                    <div style="font-size:7.5px;color:var(--muted);margin-top:2px">Agregar</div>
+                    <div style="font-size:7px;color:var(--muted)">Dispositivo</div>
+                  </div>
+                </div>
+              </div>
+              <!-- Notificaciones -->
+              <div class="notif-card">
+                <div class="notif-title">NOTIFICACIONES</div>
+                <div class="notif-item" onclick="dismissNotif(this)">
+                  <div><div class="notif-app">💬 WhatsApp</div><div class="notif-msg">"¿Cómo vas con el proyecto?"</div></div>
+                  <div class="notif-time">09:14</div>
+                </div>
+                <div class="notif-item" onclick="dismissNotif(this)">
+                  <div><div class="notif-app">📧 Gmail</div><div class="notif-msg">Resultado QFD — entrega</div></div>
+                  <div class="notif-time">08:52</div>
+                </div>
+                <div class="notif-item" onclick="dismissNotif(this)">
+                  <div><div class="notif-app">🏃 Fitness</div><div class="notif-msg">¡Meta de pasos al 83%!</div></div>
+                  <div class="notif-time">08:30</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="scroll-hint" style="background:rgba(0,229,255,0.3)"></div>
+        </div>
+
+        <!-- Quick Panel -->
+        <div class="quick-panel" id="quickPanel">
+          <div class="qp-title">ACCESO RÁPIDO</div>
+          <div class="qp-grid">
+            <div class="qp-btn" onclick="quickAction('eco')"><div class="qp-icon">🌿</div><div class="qp-lbl">ECO</div></div>
+            <div class="qp-btn" onclick="quickAction('dnd')"><div class="qp-icon">🔕</div><div class="qp-lbl">DND</div></div>
+            <div class="qp-btn" onclick="quickAction('breath')"><div class="qp-icon">🧘</div><div class="qp-lbl">RESPIRA</div></div>
+            <div class="qp-btn" onclick="quickAction('solar')"><div class="qp-icon">☀️</div><div class="qp-lbl">SOLAR</div></div>
+            <div class="qp-btn" onclick="quickAction('health')"><div class="qp-icon">❤️</div><div class="qp-lbl">SALUD</div></div>
+            <div class="qp-btn" onclick="closeQuickPanel()"><div class="qp-icon">✕</div><div class="qp-lbl">CERRAR</div></div>
+          </div>
+        </div>
+
+        <!-- Nav dots -->
+        <div class="nav-dots" id="navDots"></div>
+
+      </div><!-- /watch-screen -->
+    </div><!-- /watch-bezel -->
+  </div><!-- /watch-shell -->
+
+  <div class="nav-labels" id="navLabels"></div>
+
+</div><!-- /outer-ui -->
+
+<script>
+/* ═══════════════════════════════════════
+   NEO PULSE — ENHANCED INTERACTIVE CORE
+   ═══════════════════════════════════════ */
+
+const SCREENS=[
+  {id:'screen-home',   label:'INICIO',   key:'home'},
+  {id:'screen-health', label:'SALUD',    key:'health'},
+  {id:'screen-ai',     label:'IA',       key:'ai'},
+  {id:'screen-energy', label:'ENERGÍA',  key:'energy'},
+  {id:'screen-sustain',label:'ECO',      key:'sustain'},
+  {id:'screen-modular',label:'MÓDULOS',  key:'modular'},
+  {id:'screen-connect',label:'CONECT.',  key:'connect'},
+];
+let currentIdx=0;
+let ecgRunning=false,ecgPhase=0,ecgData=[],ecgAnimId=null;
+let kinAnimId=null,kinPhase=0;
+let brainAnimId=null,brainAngle=0;
+let syncAnimId=null,syncPhase=0;
+let autoAnimId=null,autoPhase=0;
+let trendAnimId=null;
+let solarActive=false,solarInterval=null,solarSecs=0,solarE=0,solarTimerInterval=null;
+let usbConnected=false;
+let bpmBase=72;
+let currentMode='eco';
+
+/* ── Bezel Ticks ── */
+(function buildBezelTicks(){
+  const c=document.getElementById('bezelTicks');
+  const shellSize=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--ws'))||320;
+  const R=(shellSize/2)+4;
+  for(let i=0;i<60;i++){
+    const t=document.createElement('div');
+    const major=i%5===0;
+    const angle=i*(360/60);
+    const len=major?8:4;
+    t.style.cssText=`position:absolute;width:${major?2:1.5}px;height:${len}px;left:calc(50% - ${major?1:0.75}px);top:calc(50% - ${R}px);transform-origin:50% ${R}px;transform:rotate(${angle}deg);background:${major?'rgba(0,255,136,0.4)':'rgba(255,255,255,0.1)'};border-radius:1px`;
+    c.appendChild(t);
+  }
+})();
+
+/* ── Nav ── */
+function buildNav(){
+  const d=document.getElementById('navDots');
+  const l=document.getElementById('navLabels');
+  d.innerHTML='';l.innerHTML='';
+  SCREENS.forEach((s,i)=>{
+    const dot=document.createElement('div');
+    dot.className='nav-dot'+(i===0?' active':'');
+    dot.onclick=()=>goToScreen(i);
+    dot.style.cursor='pointer';
+    d.appendChild(dot);
+    const btn=document.createElement('button');
+    btn.className='nl-btn'+(i===0?' active':'');
+    btn.textContent=s.label;
+    btn.onclick=()=>goToScreen(i);
+    l.appendChild(btn);
+  });
+}
+buildNav();
+
+function goToScreen(idx){
+  if(idx===currentIdx)return;
+  const prev=SCREENS[currentIdx];
+  const next=SCREENS[idx];
+  document.getElementById(prev.id).classList.remove('active');
+  document.getElementById(next.id).classList.add('active');
+  document.querySelectorAll('.nav-dot')[currentIdx].classList.remove('active');
+  document.querySelectorAll('.nav-dot')[idx].classList.add('active');
+  document.querySelectorAll('.nl-btn')[currentIdx].classList.remove('active');
+  document.querySelectorAll('.nl-btn')[idx].classList.add('active');
+  currentIdx=idx;
+  // start relevant animations
+  if(next.key==='health') startECG();
+  if(next.key==='energy') startKinetic();
+  if(next.key==='sustain') animateBars();
+  if(next.key==='ai') startBrain();
+  if(next.key==='connect') startSync();
+  if(next.key==='energy') startAutoCanvas();
+  if(next.key==='ai') startTrend();
+}
+
+/* ── Swipe / Drag ── */
+let tStart={x:0,y:0,t:0};
+const ws=document.getElementById('watchScreen');
+ws.addEventListener('touchstart',e=>{
+  tStart={x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now()};
+},{passive:true});
+ws.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tStart.x;
+  const dy=e.changedTouches[0].clientY-tStart.y;
+  const dt=Date.now()-tStart.t;
+  if(dt>350)return;
+  if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>28){
+    if(dx<0) goToScreen(Math.min(currentIdx+1,SCREENS.length-1));
+    else goToScreen(Math.max(currentIdx-1,0));
+  } else if(dy>40&&Math.abs(dy)>Math.abs(dx)){
+    openQuickPanel();
+  }
+},{passive:true});
+let mDown=false,mStart={x:0,y:0};
+ws.addEventListener('mousedown',e=>{mDown=true;mStart={x:e.clientX,y:e.clientY}});
+ws.addEventListener('mouseup',e=>{
+  if(!mDown)return;mDown=false;
+  const dx=e.clientX-mStart.x,dy=e.clientY-mStart.y;
+  if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>28){
+    if(dx<0) goToScreen(Math.min(currentIdx+1,SCREENS.length-1));
+    else goToScreen(Math.max(currentIdx-1,0));
+  } else if(dy>40&&Math.abs(dy)>Math.abs(dx)) openQuickPanel();
+});
+
+/* ── Quick Panel ── */
+function openQuickPanel(){document.getElementById('quickPanel').classList.add('open')}
+function closeQuickPanel(){document.getElementById('quickPanel').classList.remove('open')}
+function quickAction(action){
+  closeQuickPanel();
+  const map={eco:3,health:1,solar:3,ai:2};
+  if(map[action]!==undefined)setTimeout(()=>goToScreen(map[action]),200);
+  if(action==='solar')setTimeout(()=>{if(!solarActive)toggleSolar();},600);
+}
+
+/* ── Clock ── */
+function updateClock(){
+  const now=new Date();
+  const h=String(now.getHours()).padStart(2,'0');
+  const m=String(now.getMinutes()).padStart(2,'0');
+  const el=document.getElementById('clock');
+  if(el)el.textContent=h+':'+m;
+  const days=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const months=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const de=document.getElementById('datedisp');
+  if(de)de.textContent=days[now.getDay()]+', '+now.getDate()+' '+months[now.getMonth()];
+  const hr=now.getHours();
+  const ge=document.getElementById('greeting');
+  if(ge)ge.textContent=hr<12?'☀️ Buenos días':hr<18?'🌤 Buenas tardes':'🌙 Buenas noches';
+}
+updateClock();setInterval(updateClock,1000);
+
+/* ── BPM ── */
+function simBPM(){
+  bpmBase+=(Math.random()-0.5)*3;
+  bpmBase=Math.max(60,Math.min(100,bpmBase));
+  const v=Math.round(bpmBase);
+  ['bpm-home','bpm-display','bpm-ai'].forEach(id=>{
+    const e=document.getElementById(id);
+    if(e){e.textContent=v;e.style.animation='beatPulse 0.4s ease';}
+    setTimeout(()=>{if(e)e.style.animation=''},400);
+  });
+}
+setInterval(simBPM,2400);
+
+/* ── ECG ── */
+function startECG(){
+  if(ecgRunning)return;
+  ecgRunning=true;
+  const canvas=document.getElementById('ecg-main');
+  if(!canvas)return;
+  canvas.width=canvas.offsetWidth||248;
+  canvas.height=48;
+  ecgData=new Array(canvas.width).fill(canvas.height/2);
+  ecgLoop();
+}
+function ecgWave(x){
+  const p=x%120;
+  if(p<12)return 0;
+  if(p<20)return -2;
+  if(p<26)return 23;
+  if(p<31)return -15;
+  if(p<37)return -5;
+  if(p<50)return 7;
+  if(p<62)return 3;
+  return 0;
+}
+function ecgLoop(){
+  const canvas=document.getElementById('ecg-main');
+  if(!canvas){ecgRunning=false;return;}
+  const ctx=canvas.getContext('2d');
+  const w=canvas.width,h=canvas.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle='rgba(0,255,136,0.05)';ctx.lineWidth=0.5;
+  for(let x=0;x<w;x+=18){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}
+  for(let y=0;y<h;y+=12){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+  ecgPhase=(ecgPhase+1.9)%120;
+  ecgData.shift();
+  ecgData.push(h/2-ecgWave(ecgPhase)*(h/58));
+  const grad=ctx.createLinearGradient(0,0,w,0);
+  grad.addColorStop(0,'rgba(0,255,136,0)');
+  grad.addColorStop(0.65,'rgba(0,255,136,0.5)');
+  grad.addColorStop(1,'#00ff88');
+  ctx.beginPath();ctx.strokeStyle=grad;ctx.lineWidth=1.5;
+  ctx.shadowColor='#00ff88';ctx.shadowBlur=5;
+  for(let i=0;i<ecgData.length;i++)i===0?ctx.moveTo(i,ecgData[i]):ctx.lineTo(i,ecgData[i]);
+  ctx.stroke();ctx.shadowBlur=0;
+  ecgAnimId=requestAnimationFrame(ecgLoop);
+}
+
+/* ── Kinetic Wave ── */
+function startKinetic(){
+  const canvas=document.getElementById('kin-canvas');
+  if(!canvas)return;
+  canvas.width=canvas.offsetWidth||248;
+  canvas.height=40;
+  if(kinAnimId)cancelAnimationFrame(kinAnimId);
+  kinLoop();
+}
+function kinLoop(){
+  const canvas=document.getElementById('kin-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const w=canvas.width,h=canvas.height;
+  ctx.clearRect(0,0,w,h);
+  kinPhase+=0.045;
+  [[1,'rgba(0,229,255,0.5)'],[0.65,'rgba(0,229,255,0.22)'],[0.4,'rgba(0,255,136,0.15)']].forEach(([amp,col],i)=>{
+    ctx.beginPath();ctx.strokeStyle=col;ctx.lineWidth=i===0?1.5:1;
+    for(let x=0;x<w;x++){
+      const y=h/2+Math.sin(x*0.065+kinPhase+i*1.3)*11*amp+Math.sin(x*0.032-kinPhase*0.65)*5*amp;
+      x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  });
+  for(let p=0;p<4;p++){
+    const px=(kinPhase*35+p*62)%w;
+    const py=h/2+Math.sin(px*0.065+kinPhase)*11;
+    ctx.beginPath();ctx.arc(px,py,2.5,0,Math.PI*2);
+    ctx.fillStyle=`rgba(0,229,255,${0.4+Math.sin(kinPhase+p)*0.4})`;
+    ctx.fill();
+  }
+  kinAnimId=requestAnimationFrame(kinLoop);
+}
+
+/* ── Brain Animation ── */
+function startBrain(){
+  const canvas=document.getElementById('brain-canvas');
+  if(!canvas)return;
+  if(brainAnimId)cancelAnimationFrame(brainAnimId);
+  brainLoop();
+}
+function brainLoop(){
+  const canvas=document.getElementById('brain-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,60,60);
+  brainAngle+=0.025;
+  // outer ring
+  ctx.strokeStyle='rgba(176,106,255,0.25)';ctx.lineWidth=0.8;
+  ctx.beginPath();ctx.arc(30,30,26,0,Math.PI*2);ctx.stroke();
+  // rotating dashed ring
+  ctx.save();ctx.translate(30,30);ctx.rotate(brainAngle);
+  ctx.strokeStyle='rgba(176,106,255,0.35)';ctx.lineWidth=0.6;ctx.setLineDash([4,3]);
+  ctx.beginPath();ctx.arc(0,0,19,0,Math.PI*2);ctx.stroke();
+  ctx.setLineDash([]);ctx.restore();
+  // pulsing core
+  const pulse=0.8+Math.sin(brainAngle*3)*0.2;
+  ctx.fillStyle=`rgba(176,106,255,${0.12*pulse})`;
+  ctx.beginPath();ctx.arc(30,30,10*pulse,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(176,106,255,0.9)';
+  ctx.beginPath();ctx.arc(30,30,3,0,Math.PI*2);ctx.fill();
+  // orbiting nodes
+  const nodeAngles=[0,Math.PI/3,2*Math.PI/3,Math.PI,4*Math.PI/3,5*Math.PI/3];
+  const nodeColors=['#b06aff','#00e5ff','#00ff88','#b06aff','#00e5ff','#00ff88'];
+  nodeAngles.forEach((a,i)=>{
+    const rx=30+Math.cos(a+brainAngle*0.6)*20,ry=30+Math.sin(a+brainAngle*0.6)*20;
+    // line to center
+    ctx.strokeStyle=`rgba(${i%3===0?'176,106,255':i%3===1?'0,229,255':'0,255,136'},0.2)`;
+    ctx.lineWidth=0.5;ctx.beginPath();ctx.moveTo(30,30);ctx.lineTo(rx,ry);ctx.stroke();
+    // node dot
+    ctx.fillStyle=nodeColors[i];
+    ctx.globalAlpha=0.6+Math.sin(brainAngle*2+i)*0.3;
+    ctx.beginPath();ctx.arc(rx,ry,2.5,0,Math.PI*2);ctx.fill();
+  });
+  ctx.globalAlpha=1;
+  brainAnimId=requestAnimationFrame(brainLoop);
+}
+
+/* ── Trend Canvas (IA) ── */
+function startTrend(){
+  const canvas=document.getElementById('trend-canvas');
+  if(!canvas)return;
+  canvas.width=canvas.offsetWidth||248;
+  canvas.height=42;
+  if(trendAnimId)cancelAnimationFrame(trendAnimId);
+  let phase=0;
+  function loop(){
+    const ctx=canvas.getContext('2d');
+    const w=canvas.width,h=canvas.height;
+    ctx.clearRect(0,0,w,h);
+    phase+=0.02;
+    // BPM trend
+    ctx.strokeStyle='rgba(255,68,85,0.6)';ctx.lineWidth=1.2;
+    ctx.beginPath();
+    for(let x=0;x<w;x++){
+      const y=h*0.4+Math.sin(x*0.08+phase)*8+Math.sin(x*0.02+phase*0.5)*4;
+      x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }ctx.stroke();
+    // Stress trend
+    ctx.strokeStyle='rgba(255,179,0,0.5)';ctx.lineWidth=1;
+    ctx.beginPath();
+    for(let x=0;x<w;x++){
+      const y=h*0.6+Math.sin(x*0.05+phase*0.7+1)*6+Math.sin(x*0.03-phase*0.4)*3;
+      x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }ctx.stroke();
+    // Recovery trend
+    ctx.strokeStyle='rgba(0,255,136,0.5)';ctx.lineWidth=1;
+    ctx.beginPath();
+    for(let x=0;x<w;x++){
+      const y=h*0.3+Math.sin(x*0.04+phase*0.5+2)*5;
+      x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }ctx.stroke();
+    // legend dots
+    [[w-38,8,'rgba(255,68,85,0.8)','BPM'],[w-38,18,'rgba(255,179,0,0.8)','Est.'],[w-38,28,'rgba(0,255,136,0.8)','Rec.']].forEach(([lx,ly,col,label])=>{
+      ctx.fillStyle=col;ctx.beginPath();ctx.arc(lx,ly,3,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(238,242,255,0.4)';ctx.font='7px Share Tech Mono';ctx.fillText(label,lx+5,ly+2.5);
+    });
+    trendAnimId=requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+/* ── Sync Canvas (Conectividad) ── */
+function startSync(){
+  const canvas=document.getElementById('sync-canvas');
+  if(!canvas)return;
+  canvas.width=canvas.offsetWidth||248;
+  canvas.height=36;
+  if(syncAnimId)cancelAnimationFrame(syncAnimId);
+  syncLoop();
+}
+function syncLoop(){
+  const canvas=document.getElementById('sync-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const w=canvas.width,h=canvas.height;
+  ctx.clearRect(0,0,w,h);
+  syncPhase+=0.06;
+  const colors=['rgba(0,229,255,0.6)','rgba(0,255,136,0.4)','rgba(176,106,255,0.4)'];
+  colors.forEach((col,i)=>{
+    ctx.strokeStyle=col;ctx.lineWidth=1;
+    ctx.beginPath();
+    for(let x=0;x<w;x++){
+      const y=h*0.35+h*0.2*i+Math.sin(x*0.1+syncPhase+i*1.5)*5;
+      x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }ctx.stroke();
+  });
+  // packet dots
+  const px=(syncPhase*20)%w;
+  ctx.fillStyle='rgba(0,229,255,0.9)';
+  ctx.beginPath();ctx.arc(px,h*0.35,3,0,Math.PI*2);ctx.fill();
+  syncAnimId=requestAnimationFrame(syncLoop);
+}
+
+/* ── Auto Canvas (Energía) ── */
+function startAutoCanvas(){
+  const canvas=document.getElementById('auto-canvas');
+  if(!canvas)return;
+  canvas.width=canvas.offsetWidth||248;
+  canvas.height=36;
+  if(autoAnimId)cancelAnimationFrame(autoAnimId);
+  autoLoop();
+}
+function autoLoop(){
+  const canvas=document.getElementById('auto-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const w=canvas.width,h=canvas.height;
+  ctx.clearRect(0,0,w,h);
+  autoPhase+=0.03;
+  // consumption curve
+  ctx.strokeStyle='rgba(255,179,0,0.5)';ctx.lineWidth=1.2;
+  ctx.beginPath();
+  for(let x=0;x<w;x++){
+    const y=h*0.6+Math.sin(x*0.04+autoPhase)*7+Math.sin(x*0.1+autoPhase*2)*3;
+    x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }ctx.stroke();
+  // prediction dotted
+  ctx.strokeStyle='rgba(0,255,136,0.4)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  ctx.beginPath();
+  for(let x=w*0.6;x<w;x++){
+    const y=h*0.4+Math.sin(x*0.03+autoPhase)*5;
+    x===w*0.6?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }ctx.stroke();ctx.setLineDash([]);
+  autoAnimId=requestAnimationFrame(autoLoop);
+}
+
+/* ── Energy Modes ── */
+const MODES={
+  eco:{days:'31 días',offset:'52',gradS:'#00ff88',gradE:'#00e5ff',power:'12 mW',chip:'🌿 ECO'},
+  balanced:{days:'18 días',offset:'120',gradS:'#ffb300',gradE:'#ff8800',power:'22 mW',chip:'⚖ BALANCE'},
+  max:{days:'9 días',offset:'220',gradS:'#ff4455',gradE:'#ff8855',power:'38 mW',chip:'🔥 MAX'}
+};
+function setEnergyMode(m,btn){
+  document.querySelectorAll('.ms-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentMode=m;
+  const arc=document.getElementById('bat-arc');
+  const txt=document.getElementById('autonomy-text');
+  const gs=document.getElementById('bat-grad-start');
+  const ge=document.getElementById('bat-grad-end');
+  const chip=document.getElementById('mode-chip-home');
+  const chipDays=document.getElementById('chip-days');
+  const autoCurr=document.getElementById('auto-current');
+  if(arc)arc.setAttribute('stroke-dashoffset',MODES[m].offset);
+  if(txt){txt.textContent=MODES[m].days;txt.style.color=MODES[m].gradS}
+  if(gs)gs.setAttribute('stop-color',MODES[m].gradS);
+  if(ge)ge.setAttribute('stop-color',MODES[m].gradE);
+  if(chip)chip.innerHTML=MODES[m].chip+' · <span id="chip-days">'+MODES[m].days+'</span>';
+  if(autoCurr)autoCurr.textContent=MODES[m].power;
+}
+
+/* ── Solar ── */
+function toggleSolar(){
+  solarActive=!solarActive;
+  const rays=document.getElementById('solar-rays');
+  const btn=document.getElementById('solar-btn');
+  const chip=document.getElementById('solar-status-chip');
+  if(solarActive){
+    btn.textContent='DESACTIVAR';btn.style.background='rgba(255,179,0,0.22)';
+    rays.style.display='block';rays.innerHTML='';
+    for(let i=0;i<12;i++){
+      const r=document.createElement('div');r.className='s-ray';
+      r.style.left=(3+i*8.5)+'%';r.style.animationDelay=(i*0.13)+'s';r.style.height='100px';
+      rays.appendChild(r);
+    }
+    for(let i=0;i<10;i++){
+      const p=document.createElement('div');p.className='s-particle';
+      p.style.left=Math.random()*90+'%';p.style.top=Math.random()*85+'%';
+      p.style.animationDelay=(Math.random()*2.5)+'s';
+      rays.appendChild(p);
+    }
+    solarE=0;solarSecs=0;
+    solarInterval=setInterval(()=>{
+      const lux=Math.round(3800+Math.random()*1400);
+      solarE+=Math.random()*0.7+0.2;
+      const le=document.getElementById('lux');
+      const se=document.getElementById('solar-energy');
+      const bar=document.getElementById('solar-bar');
+      if(le)le.textContent=lux.toLocaleString();
+      if(se)se.textContent=solarE.toFixed(1);
+      if(bar)bar.style.width=Math.min(solarE*4.5,100)+'%';
+    },550);
+    solarTimerInterval=setInterval(()=>{
+      solarSecs++;
+      const tEl=document.getElementById('solar-time');
+      if(tEl)tEl.textContent=Math.floor(solarSecs/60)+':'+String(solarSecs%60).padStart(2,'0');
+    },1000);
+    if(chip){chip.textContent='Cargando';chip.className='cg-status chip-green'}
+  } else {
+    btn.textContent='ACTIVAR';btn.style.background='rgba(255,179,0,0.1)';
+    rays.style.display='none';rays.innerHTML='';
+    clearInterval(solarInterval);clearInterval(solarTimerInterval);
+    solarE=0;solarSecs=0;
+    ['lux','solar-energy'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='—'});
+    const bar=document.getElementById('solar-bar');if(bar)bar.style.width='0%';
+    const tEl=document.getElementById('solar-time');if(tEl)tEl.textContent='0:00';
+    if(chip){chip.textContent='Activo';chip.className='cg-status chip-green'}
+  }
+}
+
+/* ── USB Toggle ── */
+function toggleUSB(){
+  usbConnected=!usbConnected;
+  const name=document.getElementById('usb-card-name');
+  const detail=document.getElementById('usb-card-detail');
+  const speed=document.getElementById('usb-speed');
+  const chip=document.getElementById('usb-status-chip');
+  const icon=document.getElementById('usb-card-icon');
+  if(usbConnected){
+    if(name)name.textContent='USB-C Conectado';
+    if(detail)detail.textContent='Carga rápida 18W activa';
+    if(speed)speed.textContent='18W';speed&&(speed.style.color='var(--green)');
+    if(chip){chip.textContent='Cargando';chip.className='cg-status chip-green';chip.style.cssText='font-size:7px;padding:2px 4px;border-radius:4px;display:inline-block;background:rgba(0,255,136,0.15);color:var(--green);border:0.5px solid rgba(0,255,136,0.25)'}
+    if(icon)icon.textContent='⚡';
+  } else {
+    if(name)name.textContent='USB-C Desconectado';
+    if(detail)detail.textContent='Toca para simular conexión';
+    if(speed){speed.textContent='—';speed.style.color='var(--muted)'}
+    if(chip){chip.textContent='Desconect.';chip.style.cssText='font-size:7px;padding:2px 4px;border-radius:4px;display:inline-block;background:rgba(255,68,85,0.12);color:var(--red);border:0.5px solid rgba(255,68,85,0.2)'}
+    if(icon)icon.textContent='🔌';
+  }
+}
+
+/* ── Weekly Bars ── */
+function animateBars(){
+  const solar=[28,35,22,40,38,44,38];
+  const kinetic=[12,15,10,18,14,20,14];
+  const days=['L','M','M','J','V','S','D'];
+  const chart=document.getElementById('weekly-chart');
+  if(!chart)return;
+  chart.innerHTML='';
+  const maxV=Math.max(...solar.map((s,i)=>s+kinetic[i]));
+  days.forEach((d,i)=>{
+    const sH=Math.round((solar[i]/maxV)*44);
+    const kH=Math.round((kinetic[i]/maxV)*44);
+    const grp=document.createElement('div');
+    grp.className='bar-group';
+    grp.innerHTML=`<div class="bar-stack">
+      <div class="bar-seg" style="background:var(--amber);height:0" data-h="${sH}"></div>
+      <div class="bar-seg" style="background:var(--cyan);height:0" data-h="${kH}"></div>
+    </div><div class="bar-day">${d}</div>`;
+    chart.appendChild(grp);
+  });
+  setTimeout(()=>{
+    chart.querySelectorAll('.bar-seg').forEach((b,idx)=>{
+      b.style.transition=`height 0.7s ease ${Math.floor(idx/2)*0.09}s`;
+      b.style.height=b.dataset.h+'px';
+    });
+  },80);
+}
+
+/* ── CO2 animation ── */
+function animateCO2(){
+  const el=document.getElementById('co2-val');
+  if(!el)return;
+  let start=17.0,end=18.7+(Math.random()*0.5);
+  let cur=start;
+  const step=()=>{
+    cur+=0.1;if(cur>=end)cur=end;
+    el.textContent=cur.toFixed(1);
+    if(cur<end)requestAnimationFrame(step);
+  };
+  el.textContent=start.toFixed(1);
+  requestAnimationFrame(step);
+}
+
+/* ── Tab switch ── */
+function switchTab(tabId,btn){
+  btn.closest('.tabs').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+}
+
+/* ── Module detail toggle ── */
+function toggleModuleDetail(row){
+  const detail=row.querySelector('.mod-detail');
+  const isOpen=detail.style.display==='block';
+  detail.style.display=isOpen?'none':'block';
+  row.style.background=isOpen?'rgba(255,255,255,0.03)':'rgba(0,229,255,0.05)';
+}
+
+/* ── Expand rec card ── */
+function expandRec(card){
+  const detail=card.querySelector('.rec-detail');
+  const arrow=card.querySelector('.expand-icon');
+  if(!detail)return;
+  const isOpen=detail.style.display==='block';
+  detail.style.display=isOpen?'none':'block';
+  if(arrow)arrow.style.transform=isOpen?'':'rotate(180deg)';
+}
+
+/* ── Expand stat tile (with tooltip) ── */
+function expandTile(tile,msg){
+  tile.style.background='rgba(255,255,255,0.08)';
+  const existing=tile.querySelector('.tile-tooltip');
+  if(existing){existing.remove();tile.style.background='rgba(255,255,255,0.04)';return;}
+  const tt=document.createElement('div');
+  tt.className='tile-tooltip';
+  tt.style.cssText='position:fixed;z-index:9999;background:rgba(10,15,22,0.97);border:0.5px solid rgba(0,229,255,0.25);border-radius:8px;padding:7px 10px;font-size:8.5px;color:rgba(238,242,255,0.7);line-height:1.4;max-width:180px;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,0.8)';
+  tt.textContent=msg;
+  document.body.appendChild(tt);
+  const r=tile.getBoundingClientRect();
+  tt.style.left=Math.min(r.left,window.innerWidth-190)+'px';
+  tt.style.top=(r.bottom+6)+'px';
+  setTimeout(()=>{tt.remove();tile.style.background='rgba(255,255,255,0.04)';},2500);
+}
+
+/* ── Sleep detail toggle ── */
+function toggleSleepDetail(){
+  const d=document.getElementById('sleep-detail');
+  const a=document.getElementById('sleep-arrow');
+  const open=d.style.display==='block';
+  d.style.display=open?'none':'block';
+  if(a)a.style.transform=open?'':'rotate(180deg)';
+}
+
+/* ── Pulse card ── */
+function pulseCard(el,color){
+  el.style.boxShadow=`0 0 14px ${color}55`;
+  el.style.borderColor=color+'44';
+  setTimeout(()=>{el.style.boxShadow='';el.style.borderColor='';},600);
+}
+
+/* ── Score ring tap ── */
+function scoreRingTap(){
+  const arc=document.getElementById('score-arc');
+  const num=document.getElementById('score-num');
+  const state=document.getElementById('score-state');
+  if(!arc)return;
+  const newScore=Math.round(82+Math.random()*14);
+  const circ=201;
+  const offset=circ-(circ*(newScore/100));
+  arc.setAttribute('stroke-dashoffset',Math.round(offset));
+  if(num)num.textContent=newScore;
+  const states=newScore>=90?'Excelente':newScore>=75?'Bueno':newScore>=60?'Moderado':'Atención';
+  if(state)state.textContent=states;
+}
+
+/* ── Connectivity toggles ── */
+const connStates={bt:true,android:true,ios:false};
+function toggleConn(card,type){
+  connStates[type]=!connStates[type];
+  const ind=document.getElementById(type+'-indicator');
+  const det=document.getElementById(type+'-detail');
+  const msgs={
+    bt:{on:'Pixel 8 Pro · Conectado · −62 dBm',off:'Buscando dispositivos…'},
+    android:{on:'Sincronizado hace 1 min',off:'Esperando conexión BT'},
+    ios:{on:'iPhone vinculado · Activo',off:'Disponible · No conectado'},
+  };
+  if(ind){
+    ind.className='conn-indicator '+(connStates[type]?'ci-on':'ci-off');
+  }
+  if(det)det.textContent=msgs[type][connStates[type]?'on':'off'];
+  pulseCard(card,'#00e5ff');
+}
+
+/* ── Dismiss notification ── */
+function dismissNotif(item){
+  item.style.transition='opacity 0.3s,max-height 0.3s,padding 0.3s';
+  item.style.opacity='0';item.style.maxHeight='0';item.style.overflow='hidden';
+  setTimeout(()=>item.remove(),320);
+}
+
+/* ── Add device ── */
+function addDevice(btn){
+  btn.querySelector('.notif-app') && null;
+  const icon=btn.querySelector('.qp-icon');
+  if(icon){icon.textContent='✓';btn.style.background='rgba(0,255,136,0.08)';btn.style.borderColor='rgba(0,255,136,0.25)';}
+  const lbl=btn.querySelector('div:nth-child(2)');
+  const sub=btn.querySelector('div:nth-child(3)');
+  setTimeout(()=>{if(lbl)lbl.textContent='Tablet';if(sub)sub.style.color='var(--green)';if(sub)sub.textContent='Vinculado';},400);
+}
+
+/* ── AI Rotating Messages ── */
+const aiMessages=[
+  'Recuperación óptima detectada. Modo ECO maximiza autonomía a 31 días.',
+  'Estrés superior al promedio semanal. Pausa de 10 min recomendada.',
+  'Actividad -8% vs. 7 días. Caminata de 20 min sugerida esta tarde.',
+  'Cortisol 12 µg/L. Hidratación adicional recomendada.',
+  'Temperatura corporal 36.4°C. Condición: Excelente.',
+  'SpO₂ estable 98%. Función respiratoria normal.',
+  'Sueño 7h 24m. Recuperación: 87%. Ritmo circadiano estable.',
+];
+let aiIdx=0;
+function rotateAI(){
+  aiIdx=(aiIdx+1)%aiMessages.length;
+  const el=document.getElementById('ai-summary');
+  if(el){el.style.opacity='0';setTimeout(()=>{el.textContent=aiMessages[aiIdx];el.style.opacity='1';},280);}
+}
+const aiEl=document.getElementById('ai-summary');
+if(aiEl){aiEl.textContent=aiMessages[0];aiEl.style.transition='opacity 0.28s';}
+setInterval(rotateAI,5000);
+
+/* ── Background animations that run continuously ── */
+// ECG runs even when not on health screen (low priority)
+function initBackgroundECG(){
+  // Small hidden canvas to keep ECG data warm
+  startECG();
+}
+
+/* ── Home battery random fluctuation ── */
+setInterval(()=>{
+  const el=document.getElementById('bat-pct-home');
+  if(el){
+    let v=parseInt(el.textContent);
+    v=Math.max(75,Math.min(99,v+(Math.random()>0.7?1:-1)));
+    el.textContent=v;
+  }
+},8000);
+
+/* ── Init all ── */
+startECG();
+startKinetic();
+startBrain();
+animateBars();
+startSync();
+startAutoCanvas();
+startTrend();
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "neo-pulse-smartwatch",
+  "version": "1.0.0",
+  "description": "NEO PULSE — Smartwatch conceptual interactivo. Proyecto Innovación en Ingeniería, Universidad Libre.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["smartwatch", "neo-pulse", "wearos", "amoled", "interactive"],
+  "author": "Universidad Libre — Innovación en Ingeniería",
+  "license": "MIT"
+}
